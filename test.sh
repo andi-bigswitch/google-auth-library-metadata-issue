@@ -52,7 +52,7 @@ status "SETUP 1. Log in with gcloud auth **application-default** login"
 trace gcloud auth application-default login
 
 if [ -z "${SKIP_FIRST_TEST:-}" ]; then
-    status "TEST 1: run auth-test.cjs works but slow"
+    status "TEST 1: run auth-test.cjs works but slow (metadata server timeout)"
     trace time node auth-test.cjs
     if [ "${RUN_SLOW_TEST_AGAIN:-}" ]; then
         sleep 1
@@ -63,11 +63,14 @@ else
     status "TEST 1: Skipping first test"
 fi
 
+status "TEST 2: run auth-test.cjs with GOOGLE_CLOUD_PROJECT env var (fast!)"
+trace time GOOGLE_CLOUD_PROJECT=${GCLOUD_PROJECT_ID} node auth-test.cjs
+
 if [ -z "${SKIP_GCLOUD_AUTH_LOGIN:-}" ]; then
-    status "SETUP 2: Login in with gcloud auth login"
+    status "SETUP 3: Login in with gcloud auth login"
     trace gcloud auth login
 else
-    status "SETUP 2: Skipping gcloud auth login (SKIP_GCLOUD_AUTH_LOGIN is set)"
+    status "SETUP 3: Skipping gcloud auth login (SKIP_GCLOUD_AUTH_LOGIN is set)"
 fi
 
 if [ -z "${SKIP_GCLOUD_CONFIG_SET_PROJECT:-}" ]; then
@@ -77,6 +80,6 @@ else
     status "SETUP 4: Skipping gcloud config set project (SKIP_GCLOUD_CONFIG_SET_PROJECT is set)"
 fi
 
-status "TEST 2: run auth-test.cjs, now fast"
+status "TEST 3: run auth-test.cjs, now fast (via gcloud config)"
 trace time node auth-test.cjs
 

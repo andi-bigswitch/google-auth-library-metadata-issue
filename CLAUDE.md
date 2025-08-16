@@ -11,6 +11,7 @@ This is a test repository demonstrating performance issues with the Google Auth 
 The repository contains:
 - **auth-test.cjs**: Simple Node.js test script that demonstrates the authentication delay
 - **google-auth-library-nodejs/**: Complete source code of the Google Auth Library (cloned from GitHub main branch)
+  - See [google-auth-library-nodejs/CLAUDE.md](google-auth-library-nodejs/CLAUDE.md) for detailed library architecture and development information
 - **test.sh**: Bash script that orchestrates the authentication flow and testing
 - **Dockerfile**: Alpine-based container with Node.js, gcloud CLI, and network debugging tools
 - **Makefile**: Build and run automation with configurable environment variables

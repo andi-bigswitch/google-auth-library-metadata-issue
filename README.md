@@ -1,38 +1,48 @@
 # JS Google Auth Lib Metadata Server Example
 
-This repo demonstrates an issue with the Google Auth Lib. This significantly affects the performance of Claude Code
-with Google Vertex.
+This repo demonstrates and analyzes a performance issue with the Google Auth Library for Node.js that significantly affects Claude Code when using Google Vertex AI.
 
-In our environment, after a `gcloud auth application-default login`, this simple script (auth-test.cjs)
-spends ~12 sec trying to connect to 169.254.169.254:80 (Google's metadata server) before eventually
-succeeding.
+## The Issue
 
-```javascript
-const { GoogleAuth } = require('google-auth-library')
+After running `gcloud auth application-default login`, the Google Auth Library experiences a ~3 second delay on first authentication due to attempting to contact the GCE metadata server at `169.254.169.254:80` for project ID discovery, which times out in non-GCE environments.
 
-async function main() {
-  try {
-    const authClient = await new GoogleAuth({
-      scopes: 'https://www.googleapis.com/auth/cloud-platform',
-    }).getClient()
-    const authHeaders = await authClient.getRequestHeaders()
-    console.log('Fetched headers')
-  } catch (err) {
-    console.error(err)
-  }
-}
-main()
+## Root Cause
+
+The Application Default Credentials (ADC) file created by `gcloud auth application-default login` contains `quota_project_id` but not `project_id`. The library needs a project ID and attempts discovery in this order:
+
+1. Environment variables (`GOOGLE_CLOUD_PROJECT`, `GCLOUD_PROJECT`)
+2. Credential file's `project_id` field (missing in ADC)
+3. gcloud config via `gcloud config config-helper` (not set after ADC login only)
+4. **GCE metadata server** (causes timeout in non-GCE environments)
+
+## Quick Fix
+
+Set the `GOOGLE_CLOUD_PROJECT` environment variable:
+```bash
+export GOOGLE_CLOUD_PROJECT=your-project-id
 ```
 
-This is avoided if the Google SDK is logged in via **both**
+Or in code:
+```javascript
+const authClient = await new GoogleAuth({
+  projectId: 'your-project-id',  // Explicitly provide project ID
+  scopes: 'https://www.googleapis.com/auth/cloud-platform',
+}).getClient()
+```
 
-1. login with `gcloud auth application-default login` **and**
-2. lgoin with `gcloud auth login` **and**
-3. set project with `gcloud config set project`.
+## Complete Solution
 
-The first login is necessary - without it claude code errors out. However, with just the first login, Claude Code is slow (~16 sec for a simple command).
+For a complete gcloud setup that avoids the metadata server timeout:
 
-After logging in with both and setting the project, test script is significantly faster.
+1. `gcloud auth application-default login` - Creates ADC credentials
+2. `gcloud auth login` - Authenticates user account
+3. `gcloud config set project <project>` - Sets default project
+
+After all three steps, the library can discover the project ID from gcloud configuration without attempting metadata server access.
+
+## Detailed Analysis
+
+For a comprehensive breakdown of the authentication flow, code references, and additional solutions, see [ANALYSIS.md](ANALYSIS.md).
 
 ## Instructions
 

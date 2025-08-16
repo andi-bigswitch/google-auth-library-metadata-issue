@@ -66,6 +66,9 @@ fi
 status "TEST 2: run auth-test.cjs with GOOGLE_CLOUD_PROJECT env var (fast!)"
 trace time GOOGLE_CLOUD_PROJECT=${GCLOUD_PROJECT_ID} node auth-test.cjs
 
+status "TEST 3: run auth-test-with-project.cjs with ANTHROPIC_VERTEX_PROJECT_ID (fast!)"
+trace time ANTHROPIC_VERTEX_PROJECT_ID=${GCLOUD_PROJECT_ID} node auth-test-with-project.cjs
+
 if [ -z "${SKIP_GCLOUD_AUTH_LOGIN:-}" ]; then
     status "SETUP 3: Login in with gcloud auth login"
     trace gcloud auth login
@@ -80,6 +83,6 @@ else
     status "SETUP 4: Skipping gcloud config set project (SKIP_GCLOUD_CONFIG_SET_PROJECT is set)"
 fi
 
-status "TEST 3: run auth-test.cjs, now fast (via gcloud config)"
+status "TEST 4: run auth-test.cjs, now fast (via gcloud config)"
 trace time node auth-test.cjs
 

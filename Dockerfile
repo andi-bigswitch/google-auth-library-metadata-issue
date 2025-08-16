@@ -38,6 +38,7 @@ WORKDIR /workspace
 COPY google-auth-library-nodejs /workspace/google-auth-library-nodejs
 COPY test.sh /workspace/test.sh
 COPY auth-test.cjs /workspace/auth-test.cjs
+COPY auth-test-with-project.cjs /workspace/auth-test-with-project.cjs
 
 # Build and install google auth library from source
 WORKDIR /workspace/google-auth-library-nodejs
